@@ -12,6 +12,7 @@
             --success: #48bb78;
             --text: #2d3748;
             --text-light: #718096;
+            --accent: #ed8936;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -46,6 +47,7 @@
             justify-content: space-around;
             padding: 12px 0;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
         }
         .tab-btn {
             background: none;
@@ -68,20 +70,21 @@
         }
         .exercise-card {
             background: #edf2f7;
-            padding: 12px;
+            padding: 15px;
             border-radius: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         .input-row {
             display: flex;
             gap: 10px;
             margin-top: 8px;
         }
-        .input-row input {
-            width: 50%;
+        .input-row input, .input-full {
+            width: 100%;
             padding: 8px;
             border-radius: 5px;
             border: 1px solid #cbd5e0;
+            box-sizing: border-box;
         }
         .btn {
             background: var(--primary);
@@ -95,6 +98,7 @@
             margin-top: 10px;
         }
         .btn-success { background: var(--success); }
+        .btn-accent { background: var(--accent); }
         .progress-bar {
             background: #e2e8f0;
             border-radius: 10px;
@@ -118,6 +122,20 @@
             border-radius: 10px;
             border: 2px dashed #cbd5e0;
         }
+        .sets-history {
+            margin-top: 10px;
+            background: white;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+        .set-badge {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+            margin: 2px;
+        }
     </style>
 </head>
 <body>
@@ -131,7 +149,7 @@
         
         <div id="gym" class="tab-content active">
             <div class="card">
-                <h2>🏋️ Selecciona tu Día</h2>
+                <h2>🏋️ Mi Rutina de Carga Progresiva</h2>
                 <select class="routine-selector" id="daySelect" onchange="loadRoutine()">
                     <option value="0">Día 1: Tren Superior A (Fuerza)</option>
                     <option value="1">Día 2: Tren Inferior A (Volumen)</option>
@@ -139,7 +157,14 @@
                     <option value="3">Día 4: Tren Inferior B (Unilateral)</option>
                     <option value="4">Día 5: Full Body (Estímulo Final)</option>
                 </select>
+                
                 <div id="routineExercises"></div>
+
+                <div style="margin-top: 20px; border-top: 2px dashed #cbd5e0; padding-top: 15px;">
+                    <h3 style="margin-top:0; font-size:16px;">➕ Añadir Ejercicio Personalizado</h3>
+                    <input type="text" id="customExerciseName" class="input-full" placeholder="Nombre del ejercicio (Ej: Press inclinado barra)">
+                    <button class="btn btn-accent" onclick="addCustomExercise()">Añadir a la rutina de hoy</button>
+                </div>
             </div>
         </div>
 
@@ -154,12 +179,31 @@
                 </div>
                 <p style="color: var(--text-light)">Proteínas estimadas: <span id="currentProt">0</span>g</p>
                 
-                <button class="btn" onclick="simulatePhotoScan()">📸 Tomar Foto a mi Comida</button>
+                <button class="btn" onclick="simulatePhotoScan()">📸 Opción A: Tomar Foto a mi Comida</button>
                 
                 <div id="photoArea" class="photo-container">
                     <p style="font-weight: bold; margin: 5px 0;">🟢 ¡Comida Escaneada con Éxito!</p>
                     <p id="foodAnalysis" style="font-size: 14px; color: var(--text-light);"></p>
                     <button class="btn btn-success" onclick="confirmMeal()">Sumar a mi Día</button>
+                </div>
+
+                <div style="margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px; text-align: left;">
+                    <h3 style="margin-top:0; font-size:16px;">📝 Opción B: Ingreso Manual</h3>
+                    <div style="margin-bottom: 8px;">
+                        <label style="font-size:12px; font-weight:bold; color:var(--text-light)">Alimento / Comida</label>
+                        <input type="text" id="manualFoodName" class="input-full" placeholder="Ej: Licuado con crema de cacahuate">
+                    </div>
+                    <div class="input-row">
+                        <div>
+                            <label style="font-size:12px; font-weight:bold; color:var(--text-light)">Calorías (kcal)</label>
+                            <input type="number" id="manualCals" placeholder="Ej: 850">
+                        </div>
+                        <div>
+                            <label style="font-size:12px; font-weight:bold; color:var(--text-light)">Proteína (g)</label>
+                            <input type="number" id="manualProt" placeholder="Ej: 35">
+                        </div>
+                    </div>
+                    <button class="btn btn-success" onclick="addManualMeal()">Agregar Alimento</button>
                 </div>
             </div>
         </div>
@@ -168,13 +212,12 @@
             <div class="card">
                 <h2>📈 Mis Datos Base (1.63 m)</h2>
                 <p><strong>Peso Actual:</strong> 58.500 kg -> Meta: 63 kg</p>
-                <p><strong>Carga Progresiva Tracker:</strong></p>
+                <p><strong>Marcas Iniciales Históricas:</strong></p>
                 <ul>
                     <li>Press Pecho Base: 40 lb x 12 reps</li>
                     <li>Sentadilla Base: 40 lb x 10 reps</li>
                     <li>Dominadas Base: Peso Corp. x 6 reps</li>
                 </ul>
-                <p style="color: var(--text-light); font-size: 13px;">*La app calcula automáticamente tu volumen acumulado cada semana para asegurar el crecimiento muscular.</p>
             </div>
         </div>
 
@@ -187,6 +230,7 @@
     </nav>
 
     <script>
+        // Datos iniciales de rutinas
         const routines = [
             [
                 { name: "Press Mancuernas (Pecho)", base: "45 lb x 8 reps" },
@@ -220,6 +264,10 @@
             ]
         ];
 
+        // Objeto global para almacenar el historial de series hechas en la sesión actual
+        // Clave: "dia_ejercicioIndex", Valor: arreglo de series
+        let sessionSets = {};
+
         let totalCals = 0;
         let totalProt = 0;
         let pendingCals = 0;
@@ -245,27 +293,77 @@
             container.innerHTML = '';
             
             routines[dayIdx].forEach((ex, idx) => {
+                const key = `${dayIdx}_${idx}`;
+                let setsHTML = '';
+                
+                if (sessionSets[key] && sessionSets[key].length > 0) {
+                    sessionSets[key].forEach((s, sIdx) => {
+                        setsHTML += `<span class="set-badge">S${sIdx+1}: ${s.weight}lb x ${s.reps} (${s.weight * s.reps} vol)</span>`;
+                    });
+                } else {
+                    setsHTML = '<span style="color:var(--text-light); font-size:12px;">Sin series registradas hoy</span>';
+                }
+
                 container.innerHTML += `
                     <div class="exercise-card">
                         <strong>${ex.name}</strong>
-                        <div style="font-size:12px; color:var(--text-light)">Objetivo sugerido: ${ex.base}</div>
+                        <div style="font-size:12px; color:var(--text-light)">Objetivo: ${ex.base}</div>
                         <div class="input-row">
-                            <input type="number" placeholder="Peso (lb)" id="w_${dayIdx}_${idx}">
-                            <input type="number" placeholder="Reps" id="r_${dayIdx}_${idx}">
+                            <input type="number" placeholder="Peso (lb)" id="w_${key}">
+                            <input type="number" placeholder="Reps" id="r_${key}">
                         </div>
-                        <button class="btn" style="padding:5px; font-size:12px; margin-top:5px" onclick="saveSet('${ex.name}', ${dayIdx}, ${idx})">Guardar Serie</button>
+                        <button class="btn" style="padding:6px; font-size:12px; margin-top:8px" onclick="saveSet(${dayIdx}, ${idx})">💾 Registrar Serie</button>
+                        
+                        <div class="sets-history">
+                            <strong>Series de hoy:</strong><br>
+                            <div id="history_${key}" style="margin-top:5px;">${setsHTML}</div>
+                        </div>
                     </div>
                 `;
             });
         }
 
-        function saveSet(name, dIdx, eIdx) {
-            const w = document.getElementById(`w_${dIdx}_${eIdx}`).value;
-            const r = document.getElementById(`r_${dIdx}_${eIdx}`).value;
-            if(!w || !r) return alert("Por favor ingresa peso y repeticiones");
-            alert(`¡Serie guardada para ${name}! Volumen movido: ${w * r} lbs. ¡Sigue así para la carga progresiva!`);
+        function saveSet(dayIdx, exIdx) {
+            const key = `${dayIdx}_${exIdx}`;
+            const wInput = document.getElementById(`w_${key}`);
+            const rInput = document.getElementById(`r_${key}`);
+            
+            const weight = wInput.value;
+            const reps = rInput.value;
+            
+            if(!weight || !reps) return alert("Por favor ingresa peso y repeticiones para registrar la serie.");
+            
+            if(!sessionSets[key]) {
+                sessionSets[key] = [];
+            }
+            
+            // Guardar serie en el estado
+            sessionSets[key].push({ weight: parseFloat(weight), reps: parseInt(reps) });
+            
+            // Limpiar inputs para la siguiente serie
+            wInput.value = '';
+            rInput.value = '';
+            
+            // Recargar interfaz para mostrar el historial actualizado
+            loadRoutine();
         }
 
+        function addCustomExercise() {
+            const dayIdx = document.getElementById('daySelect').value;
+            const input = document.getElementById('customExerciseName');
+            const name = input.value.trim();
+            
+            if(!name) return alert("Escribe el nombre del ejercicio.");
+            
+            // Insertar nuevo ejercicio en el catálogo temporal del día
+            routines[dayIdx].push({ name: name, base: "Personalizado" });
+            input.value = '';
+            
+            loadRoutine();
+            alert("¡Ejercicio agregado con éxito a tu lista de hoy!");
+        }
+
+        // NUTRICIÓN - OPCIÓN A: FOTO
         function simulatePhotoScan() {
             const currentMeal = mealsPool[mealIndex % mealsPool.length];
             pendingCals = currentMeal.cals;
@@ -277,20 +375,43 @@
         }
 
         function confirmMeal() {
-            totalCals += pendingCals;
-            totalProt += pendingProt;
+            updateCalorieTotal(pendingCals, pendingProt);
+            document.getElementById('photoArea').style.display = 'none';
+            alert("¡Calorías de la foto añadidas!");
+        }
+
+        // NUTRICIÓN - OPCIÓN B: MANUAL
+        function addManualMeal() {
+            const name = document.getElementById('manualFoodName').value.trim();
+            const cals = parseInt(document.getElementById('manualCals').value);
+            const prot = parseInt(document.getElementById('manualProt').value);
+            
+            if(!cals || isNaN(cals)) return alert("Por favor ingresa al menos la cantidad de calorías.");
+            
+            const proteinGrams = isNaN(prot) ? 0 : prot;
+            
+            updateCalorieTotal(cals, proteinGrams);
+            
+            // Limpiar campos
+            document.getElementById('manualFoodName').value = '';
+            document.getElementById('manualCals').value = '';
+            document.getElementById('manualProt').value = '';
+            
+            alert(`¡Se registraron manualmente ${cals} kcal!`);
+        }
+
+        function updateCalorieTotal(cals, prot) {
+            totalCals += cals;
+            totalProt += prot;
             
             document.getElementById('currentCals').innerText = totalCals;
             document.getElementById('currentProt').innerText = totalProt;
             
             let pct = (totalCals / 2600) * 100;
             document.getElementById('calBar').style.width = `${Math.min(pct, 100)}%`;
-            
-            document.getElementById('photoArea').style.display = 'none';
-            alert("¡Calorías añadidas a tu registro diario!");
         }
 
-        // Carga inicial
+        // Inicialización
         loadRoutine();
     </script>
 </body>
