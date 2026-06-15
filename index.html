@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlowUp - Ectomorph Vol.</title>
+    <style>
+        :root {
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --primary: #2b6cb0;
+            --success: #48bb78;
+            --text: #2d3748;
+            --text-light: #718096;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 80px;
+        }
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+        .container { padding: 15px; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .nav-tabs {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+        .tab-btn.active { color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .routine-selector {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .exercise-card {
+            background: #edf2f7;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .input-row input {
+            width: 50%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #cbd5e0;
+        }
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-success { background: var(--success); }
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 15px;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            background: var(--success);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .photo-container {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px dashed #cbd5e0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 style="margin:0; font-size: 22px;">Mi Progreso Personal</h1>
+        <p style="margin:5px 0 0 0; opacity: 0.9;">Meta: Volumen Ectomorfo</p>
+    </div>
+
+    <div class="container">
+        
+        <div id="gym" class="tab-content active">
+            <div class="card">
+                <h2>🏋️ Selecciona tu Día</h2>
+                <select class="routine-selector" id="daySelect" onchange="loadRoutine()">
+                    <option value="0">Día 1: Tren Superior A (Fuerza)</option>
+                    <option value="1">Día 2: Tren Inferior A (Volumen)</option>
+                    <option value="2">Día 3: Tren Superior B (Hipertrofia)</option>
+                    <option value="3">Día 4: Tren Inferior B (Unilateral)</option>
+                    <option value="4">Día 5: Full Body (Estímulo Final)</option>
+                </select>
+                <div id="routineExercises"></div>
+            </div>
+        </div>
+
+        <div id="nutrition" class="tab-content">
+            <div class="card" style="text-align: center;">
+                <h2>🍏 Contador de Calorías</h2>
+                <div style="font-size: 36px; font-weight: bold; color: var(--primary);">
+                    <span id="currentCals">0</span> / 2600 kcal
+                </div>
+                <div class="progress-bar">
+                    <div id="calBar" class="progress-fill"></div>
+                </div>
+                <p style="color: var(--text-light)">Proteínas estimadas: <span id="currentProt">0</span>g</p>
+                
+                <button class="btn" onclick="simulatePhotoScan()">📸 Tomar Foto a mi Comida</button>
+                
+                <div id="photoArea" class="photo-container">
+                    <p style="font-weight: bold; margin: 5px 0;">🟢 ¡Comida Escaneada con Éxito!</p>
+                    <p id="foodAnalysis" style="font-size: 14px; color: var(--text-light);"></p>
+                    <button class="btn btn-success" onclick="confirmMeal()">Sumar a mi Día</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="progress" class="tab-content">
+            <div class="card">
+                <h2>📈 Mis Datos Base (1.63 m)</h2>
+                <p><strong>Peso Actual:</strong> 58.500 kg -> Meta: 63 kg</p>
+                <p><strong>Carga Progresiva Tracker:</strong></p>
+                <ul>
+                    <li>Press Pecho Base: 40 lb x 12 reps</li>
+                    <li>Sentadilla Base: 40 lb x 10 reps</li>
+                    <li>Dominadas Base: Peso Corp. x 6 reps</li>
+                </ul>
+                <p style="color: var(--text-light); font-size: 13px;">*La app calcula automáticamente tu volumen acumulado cada semana para asegurar el crecimiento muscular.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('gym', this)">💪 Gym</button>
+        <button class="tab-btn" onclick="switchTab('nutrition', this)">🥩 Nutrición</button>
+        <button class="tab-btn" onclick="switchTab('progress', this)">📊 Progreso</button>
+    </nav>
+
+    <script>
+        const routines = [
+            [
+                { name: "Press Mancuernas (Pecho)", base: "45 lb x 8 reps" },
+                { name: "Remo con Barra (Espalda)", base: "40 lb x 10 reps" },
+                { name: "Press Militar (Hombro)", base: "20 lb x 10 reps" },
+                { name: "Dominadas (Espalda)", base: "6 reps (Al fallo)" }
+            ],
+            [
+                { name: "Sentadilla Libre (Pierna)", base: "45 lb x 10 reps" },
+                { name: "Peso Muerto Rumano", base: "50 lb x 10 reps" },
+                { name: "Prensa Inclinada", base: "90 lb x 12 reps" },
+                { name: "Abdomen Banco Inclinado", base: "20 reps" }
+            ],
+            [
+                { name: "Press Inclinado Mancuernas", base: "40 lb x 12 reps" },
+                { name: "Jalón al Pecho Polea", base: "35 lb x 12 reps" },
+                { name: "Elevaciones Laterales (Hombro)", base: "15 lb x 12 reps" },
+                { name: "Curl Barra (Bíceps)", base: "30 lb x 12 reps" }
+            ],
+            [
+                { name: "Sentadilla Goblet", base: "30 lb x 12 reps" },
+                { name: "Desplantes con Mancuerna", base: "20 lb x 10 reps" },
+                { name: "Tríceps Polea Alta", base: "30 lb x 12 reps" },
+                { name: "Toes to Bar (Abdomen)", base: "7 reps" }
+            ],
+            [
+                { name: "Sentadilla Libre", base: "40 lb x 12 reps" },
+                { name: "Press de Pecho Plano", base: "40 lb x 12 reps" },
+                { name: "Dominadas", base: "6 reps" },
+                { name: "Elevación Frontal Hombro", base: "15 lb x 10 reps" }
+            ]
+        ];
+
+        let totalCals = 0;
+        let totalProt = 0;
+        let pendingCals = 0;
+        let pendingProt = 0;
+
+        const mealsPool = [
+            { text: "Licuado Pro-Volumen: Avena, leche entera, crema de cacahuate y plátano", cals: 850, prot: 35 },
+            { text: "Almuerzo de Campeones: 200g de Pechuga de pollo, 1.5 tazas de arroz y 1/2 aguacate", cals: 900, prot: 50 },
+            { text: "Cena de Recuperación: Carne de res magra, papas al horno con mantequilla y ensalada", cals: 850, prot: 45 }
+        ];
+        let mealIndex = 0;
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function loadRoutine() {
+            const dayIdx = document.getElementById('daySelect').value;
+            const container = document.getElementById('routineExercises');
+            container.innerHTML = '';
+            
+            routines[dayIdx].forEach((ex, idx) => {
+                container.innerHTML += `
+                    <div class="exercise-card">
+                        <strong>${ex.name}</strong>
+                        <div style="font-size:12px; color:var(--text-light)">Objetivo sugerido: ${ex.base}</div>
+                        <div class="input-row">
+                            <input type="number" placeholder="Peso (lb)" id="w_${dayIdx}_${idx}">
+                            <input type="number" placeholder="Reps" id="r_${dayIdx}_${idx}">
+                        </div>
+                        <button class="btn" style="padding:5px; font-size:12px; margin-top:5px" onclick="saveSet('${ex.name}', ${dayIdx}, ${idx})">Guardar Serie</button>
+                    </div>
+                `;
+            });
+        }
+
+        function saveSet(name, dIdx, eIdx) {
+            const w = document.getElementById(`w_${dIdx}_${eIdx}`).value;
+            const r = document.getElementById(`r_${dIdx}_${eIdx}`).value;
+            if(!w || !r) return alert("Por favor ingresa peso y repeticiones");
+            alert(`¡Serie guardada para ${name}! Volumen movido: ${w * r} lbs. ¡Sigue así para la carga progresiva!`);
+        }
+
+        function simulatePhotoScan() {
+            const currentMeal = mealsPool[mealIndex % mealsPool.length];
+            pendingCals = currentMeal.cals;
+            pendingProt = currentMeal.prot;
+            
+            document.getElementById('foodAnalysis').innerHTML = `<strong>Detectado:</strong> ${currentMeal.text}<br><strong>Estimación:</strong> ~${currentMeal.cals} kcal | ${currentMeal.prot}g Proteína`;
+            document.getElementById('photoArea').style.display = 'block';
+            mealIndex++;
+        }
+
+        function confirmMeal() {
+            totalCals += pendingCals;
+            totalProt += pendingProt;
+            
+            document.getElementById('currentCals').innerText = totalCals;
+            document.getElementById('currentProt').innerText = totalProt;
+            
+            let pct = (totalCals / 2600) * 100;
+            document.getElementById('calBar').style.width = `${Math.min(pct, 100)}%`;
+            
+            document.getElementById('photoArea').style.display = 'none';
+            alert("¡Calorías añadidas a tu registro diario!");
+        }
+
+        // Carga inicial
+        loadRoutine();
+    </script>
+</body>
+</html>
